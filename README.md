@@ -130,6 +130,13 @@ Contributions, issues, and feature requests are welcome! Feel free to check the 
 
 ---
 
+## 👥 Contributors
+
+- **Katukojwala Sreemaye**
+- **Jakkula Rithvika**
+
+---
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
