@@ -31,7 +31,12 @@ const studyPlanSchema = new mongoose.Schema(
 
         resources: [String],
 
-        dailyTasks: [String],
+        dailyTasks: [
+          {
+            task: String,
+            completed: { type: Boolean, default: false }
+          }
+        ],
 
         revisionTopics: [String],
       },

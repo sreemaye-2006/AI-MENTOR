@@ -58,6 +58,12 @@ const careerRoadmapSchema = new mongoose.Schema(
         stepNumber: Number,
         title: String,
         description: String,
+        resources: [
+          {
+            title: String,
+            url: String
+          }
+        ]
       },
     ],
 

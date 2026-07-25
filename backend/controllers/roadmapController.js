@@ -13,7 +13,7 @@ exports.generateRoadmap = async (req, res) => {
     }).sort({ createdAt: -1 });
 
     const prompt = `
-Generate a personalized career roadmap.
+Generate a personalized career roadmap for the following user profile.
 
 Student Name: ${user.name}
 
@@ -38,102 +38,82 @@ ${performance?.weakestSkills.join(", ") || ""}
 Priority Topics:
 ${performance?.priorityTopics.join(", ") || ""}
 
-Generate:
+CRITICAL: You MUST provide at least 1 learning resource (title and URL) for EVERY single step inside the 'roadmapSteps' array. It is mandatory.
 
-1. Missing Skills
-
-2. Technologies to Learn
-
-3. Projects
-
-4. Certifications
-
-5. Learning Resources
-
-6. Step-by-step Roadmap
-
-7. Interview Preparation
-
-8. Action Plan
+Return ONLY a JSON object representing the career roadmap. The object should have the following structure exactly:
+{
+  "missingSkills": ["skill1", "skill2"],
+  "technologiesToLearn": [
+    { "technology": "tech name", "reason": "why to learn" }
+  ],
+  "recommendedProjects": [
+    { "title": "project title", "description": "project description", "difficulty": "Beginner/Intermediate/Advanced" }
+  ],
+  "certifications": [
+    { "name": "cert name", "provider": "provider name" }
+  ],
+  "learningResources": [
+    { "title": "resource title", "url": "https://..." }
+  ],
+  "roadmapSteps": [
+    { 
+      "stepNumber": 1, 
+      "title": "step title", 
+      "description": "step description",
+      "resources": [
+        { "title": "resource title", "url": "https://..." }
+      ]
+    }
+  ],
+  "interviewPreparation": ["prep tip 1", "prep tip 2"],
+  "actionPlan": ["action 1", "action 2"]
+}
+Do not include any markdown formatting like \`\`\`json or \`\`\`. Output ONLY the raw JSON object.
 `;
 
     const aiResponse = await callLyzrAgent(
-
       process.env.ROADMAP_AGENT_ID,
-
       user.email,
-
       `${user._id}-roadmap`,
-
       prompt
-
     );
-    await CareerRoadmap.create({
-
-    user:user._id,
-
-    targetRole:user.currentRoleGoal,
-
-    currentReadiness:performance?.roleReadiness || 0,
-
-    missingSkills:["React"],
-
-    technologiesToLearn:[
-        {
-            technology:"React",
-            reason:"Industry standard frontend framework"
+    
+    let parsedData = {};
+    try {
+        let jsonStr = aiResponse.response;
+        if (jsonStr.startsWith("\`\`\`json")) {
+            jsonStr = jsonStr.replace(/\`\`\`json/g, "").replace(/\`\`\`/g, "").trim();
+        } else if (jsonStr.startsWith("\`\`\`")) {
+             jsonStr = jsonStr.replace(/\`\`\`/g, "").trim();
         }
-    ],
+        parsedData = JSON.parse(jsonStr);
+    } catch (e) {
+        console.error("Failed to parse AI response as JSON", aiResponse.response);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to generate a valid roadmap format from AI."
+        });
+    }
 
-    recommendedProjects:[
-        {
-            title:"Weather App",
+    const roadmap = await CareerRoadmap.create({
+        user: user._id,
+        targetRole: user.currentRoleGoal,
+        currentReadiness: performance?.roleReadiness || 0,
+        missingSkills: parsedData.missingSkills || [],
+        technologiesToLearn: parsedData.technologiesToLearn || [],
+        recommendedProjects: parsedData.recommendedProjects || [],
+        certifications: parsedData.certifications || [],
+        learningResources: parsedData.learningResources || [],
+        roadmapSteps: parsedData.roadmapSteps || [],
+        interviewPreparation: parsedData.interviewPreparation || [],
+        actionPlan: parsedData.actionPlan || []
+    });
 
-            description:"Build using React and API",
-
-            difficulty:"Intermediate"
-        }
-    ],
-
-    certifications:[
-        {
-            name:"Meta Frontend Developer",
-
-            provider:"Coursera"
-        }
-    ],
-
-    learningResources:[
-        {
-            title:"React Docs",
-
-            url:"https://react.dev"
-        }
-    ],
-
-    roadmapSteps:[
-        {
-            stepNumber:1,
-
-            title:"Learn React",
-
-            description:"Complete React Fundamentals"
-        }
-    ],
-
-    interviewPreparation:[
-        "Practice DSA",
-        "Mock Interviews"
-    ],
-
-    actionPlan:[
-        "Build Portfolio",
-        "Apply for Internship"
-    ]
-
-});
-
-    res.json(aiResponse);
+    res.json({
+        success: true,
+        roadmap,
+        aiResponse
+    });
 
   } catch (error) {
 
@@ -142,5 +122,20 @@ Generate:
       message: error.message
     });
 
+  }
+};
+
+exports.getRoadmap = async (req, res) => {
+  try {
+    const roadmap = await CareerRoadmap.findOne({ user: req.user.id }).sort({ createdAt: -1 });
+    res.json({
+      success: true,
+      roadmap
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };

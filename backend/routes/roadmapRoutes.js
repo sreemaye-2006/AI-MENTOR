@@ -1,23 +1,12 @@
 const express = require("express");
-
 const router = express.Router();
-
 const protect = require("../middlewares/authMiddlewares");
-
 const {
+    generateRoadmap,
+    getRoadmap
+} = require("../controllers/roadmapController");
 
-generateRoadmap
+router.post("/generate", protect, generateRoadmap);
+router.get("/", protect, getRoadmap);
 
-}=require("../controllers/roadmapController");
-
-router.post(
-
-"/generate",
-
-protect,
-
-generateRoadmap
-
-);
-
-module.exports=router;
+module.exports = router;

@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const Performance = require("../models/Performance");
+const Motivation = require("../models/Motivation");
 
 const { callLyzrAgent } = require("../services/lyzrService");
 exports.generateMotivation = async (req, res) => {
@@ -81,4 +82,17 @@ Return only the motivational message.
       message: error.message,
     });
   }
+};
+
+exports.getMotivation = async (req, res) => {
+    try {
+        const motivation = await Motivation.findOne({ user: req.user.id }).sort({ createdAt: -1 });
+        if (!motivation) {
+            return res.status(404).json({ success: false, message: "No motivation data found." });
+        }
+        res.status(200).json({ success: true, motivation });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: error.message });
+    }
 };
