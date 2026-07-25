@@ -45,6 +45,12 @@
 
 ### AI Integration
 - **Lyzr API**: Leverages advanced Lyzr agents for roadmap generation, motivational coaching, interview evaluation, and study planning.
+- Have used 5 lyzr AI's
+- SkillPath Coach Ai
+- My AI Internview
+- Perfromance AI
+- Career Navigator
+- Progress and Thrive monitor
 
 ---
 
