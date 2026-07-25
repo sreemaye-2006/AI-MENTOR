@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const Performance = require("../models/Performance");
-const Motivation = require("../models/Motivation");
+const Motivation = require("../models/motivation");
 
 const { callLyzrAgent } = require("../services/lyzrService");
 exports.generateMotivation = async (req, res) => {
